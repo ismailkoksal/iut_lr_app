@@ -1,5 +1,7 @@
 # iut_lr_app
 
+![Schedule](https://github.com/ismailkoksal/iut_lr_app/blob/master/screenshots/schedule.png)
+
 A new Flutter application.
 
 ## Getting Started
