@@ -25,8 +25,9 @@ class NavBar extends StatefulWidget {
 class _NavBarState extends State<NavBar> {
   PageController _pageController;
   Future<String> _studentName;
+  int _selectedIndex;
 
-  int getYear() {
+  int schoolStartYear() {
     int month = DateTime.now().month;
     int year = DateTime.now().year;
     return month >= DateTime.september && month <= DateTime.december
@@ -43,9 +44,10 @@ class _NavBarState extends State<NavBar> {
   void initState() {
     super.initState();
     var diff = widget.selectedDate
-            .difference(DateTime(getYear(), DateTime.september))
+            .difference(DateTime(schoolStartYear(), DateTime.september))
             .inDays /
         7;
+    _selectedIndex = widget.selectedDate.weekday - 1;
     _pageController = PageController(initialPage: diff.floor());
     _studentName = User.studentName;
   }
@@ -116,34 +118,72 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  Widget get _buildDateList => PageView.builder(
+  Widget get _buildDateList =>
+      PageView.builder(
         physics: BouncingScrollPhysics(),
         controller: _pageController,
         itemCount: 53,
         itemBuilder: (BuildContext context, int index) {
-          int week = DateTime(getYear(), DateTime.september).week + index;
-          var startDate = getDateOfWeek(week);
-          print(startDate);
+          int displayedWeek = DateTime(schoolStartYear(), DateTime.september)
+              .add(Duration(days: 7 * index))
+              .week;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0),
-            child: Row(
-              children: List.generate(7, (int index) {
-                var date = startDate.add(Duration(days: index));
-                return Expanded(
-                  child: DateCard(
-                    date: date,
-                    isSelected: isSelected(date),
-                    onTap: () => widget.onDateChanged(date),
-                  ),
-                );
-              }),
+            child: Stack(
+              children: [
+                if (displayedWeek == widget.selectedDate.week)
+                  _buildSelectedIndicator(context),
+                _buildWeek(week: displayedWeek),
+              ],
             ),
           );
         },
       );
 
-  DateTime getDateOfWeek(int week) {
-    DateTime date = DateTime(getYear()).add(Duration(days: 1 + (week - 1) * 7));
+  Widget _buildSelectedIndicator(BuildContext context) {
+    return AnimatedPositioned(
+      duration: Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      left: (MediaQuery
+          .of(context)
+          .size
+          .width - 60) / 7 * _selectedIndex,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.0),
+          color: kOrangeColor,
+        ),
+        width: (MediaQuery
+            .of(context)
+            .size
+            .width - 60) / 7,
+        height: 70.0,
+      ),
+    );
+  }
+
+  Widget _buildWeek({int week}) {
+    return Row(
+      children: List.generate(7, (int index) {
+        DateTime firstMondayOfWeek = getFirstMondayOfWeek(week: week);
+        DateTime date = firstMondayOfWeek.add(Duration(days: index));
+        return Expanded(
+          child: DateCard(
+            date: date,
+            isSelected: isSelected(date),
+            onTap: () {
+              widget.onDateChanged(date);
+              setState(() => _selectedIndex = index);
+            },
+          ),
+        );
+      }),
+    );
+  }
+
+  DateTime getFirstMondayOfWeek({int week}) {
+    DateTime date =
+    DateTime(schoolStartYear()).add(Duration(days: (week - 1) * 7));
     return DateTime(date.year, date.month, date.day + (1 - date.weekday));
   }
 }

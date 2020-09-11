@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:iut_lr_app/constants.dart';
 import 'package:iut_lr_app/pages/schedule_page.dart';
 import 'package:iut_lr_app/routes.dart';
@@ -17,8 +20,11 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 void main() async {
-  HttpOverrides.global = new MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
+  initializeDateFormatting();
+  Intl.defaultLocale = 'fr_FR';
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  HttpOverrides.global = new MyHttpOverrides();
   String username = await User.studentId;
   username != null
       ? GpuService.login(studentId: username)

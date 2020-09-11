@@ -5,18 +5,17 @@ import 'package:intl/intl.dart';
 import 'package:iut_lr_app/models/course.dart';
 import 'package:iut_lr_app/user.dart';
 
+import '../../apis/dateTime_apis.dart';
 import '../../constants.dart';
 import '../../services/gpu.dart';
 import '../card/course_card.dart';
 
 class CourseList extends StatefulWidget {
   final DateTime date;
-  final int week;
 
   const CourseList({
     Key key,
     @required this.date,
-    @required this.week,
   }) : super(key: key);
 
   @override
@@ -32,7 +31,7 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _coursesFuture = GpuService.getSchedule(week: widget.week);
+    _coursesFuture = GpuService.getSchedule(week: widget.date.week);
     _timer = Timer.periodic(Duration(seconds: 1),
         (timer) => setState(() => _currentDateTime = DateTime.now()));
   }
@@ -45,7 +44,7 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
       if (!isLoggedIn) {
         GpuService.login(studentId: await User.studentId).then((isLoggedIn) => {
               if (isLoggedIn)
-                _coursesFuture = GpuService.getSchedule(week: widget.week)
+                _coursesFuture = GpuService.getSchedule(week: widget.date.week)
             });
       }
     }
@@ -54,8 +53,8 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(CourseList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.week != widget.week) {
-      _coursesFuture = GpuService.getSchedule(week: widget.week);
+    if (oldWidget.date.week != widget.date.week) {
+      _coursesFuture = GpuService.getSchedule(week: widget.date.week);
     }
   }
 
