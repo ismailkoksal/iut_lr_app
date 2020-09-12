@@ -116,8 +116,7 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  Widget get _buildDateList =>
-      PageView.builder(
+  Widget get _buildDateList => PageView.builder(
         physics: BouncingScrollPhysics(),
         controller: _pageController,
         itemCount: 53,
