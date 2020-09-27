@@ -11,33 +11,42 @@ class CourseCard extends StatelessWidget {
     Key key,
     @required this.course,
     this.isActive = false,
-  }) : super(key: key);
+  })  : assert(course != null),
+        assert(isActive != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 23.0, vertical: 25.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25.0),
-        color: isActive ? kGreenColor : kCardPopupBackgroundColor,
+        borderRadius: BorderRadius.circular(30.0),
+        color: isActive ? kIUTLaRochelleColor : Theme
+            .of(context)
+            .cardColor,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             course.description.spe,
-            style: kHeadlineLabelStyle.copyWith(
+            style: Theme
+                .of(context)
+                .textTheme
+                .headline6
+                .copyWith(
               color: isActive ? Colors.white : null,
             ),
           ),
-          if (course.description.salle != '') _buildClassRoom,
-          if (course.description.prof != '') _buildTeacher,
+          if (course.description.salle != '') _buildClassRoom(context),
+          if (course.description.prof != '') _buildTeacher(context),
         ],
       ),
     );
   }
 
-  Widget get _buildTeacher => Column(
+  Widget _buildTeacher(BuildContext context) =>
+      Column(
         children: [
           const SizedBox(height: 5.0),
           Row(
@@ -45,12 +54,22 @@ class CourseCard extends StatelessWidget {
               Icon(
                 Icons.person,
                 size: 18.0,
-                color: isActive ? Colors.white : kSubtitleStyle.color,
+                color: isActive
+                    ? Colors.white
+                    : Theme
+                    .of(context)
+                    .textTheme
+                    .bodyText1
+                    .color,
               ),
               const SizedBox(width: 10.0),
               Text(
                 course.description.prof,
-                style: kSubtitleStyle.copyWith(
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .bodyText1
+                    .copyWith(
                   color: isActive ? Colors.white : null,
                 ),
               ),
@@ -59,7 +78,8 @@ class CourseCard extends StatelessWidget {
         ],
       );
 
-  Widget get _buildClassRoom => Column(
+  Widget _buildClassRoom(BuildContext context) =>
+      Column(
         children: [
           const SizedBox(height: 15.0),
           Row(
@@ -67,12 +87,22 @@ class CourseCard extends StatelessWidget {
               Icon(
                 Icons.place,
                 size: 18.0,
-                color: isActive ? Colors.white : kSubtitleStyle.color,
+                color: isActive
+                    ? Colors.white
+                    : Theme
+                    .of(context)
+                    .textTheme
+                    .bodyText1
+                    .color,
               ),
               const SizedBox(width: 10.0),
               Text(
                 course.description.salle,
-                style: kSubtitleStyle.copyWith(
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .bodyText1
+                    .copyWith(
                   color: isActive ? Colors.white : null,
                 ),
               ),

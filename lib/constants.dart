@@ -3,19 +3,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 // Colors
-const kBackgroundColor = Color(0xFFE7EEFB);
 const kSidebarBackgroundColor = Color(0xFFF1F4FB);
-const kCardPopupBackgroundColor = Color(0xFFF5F8FF);
 const kPrimaryLabelColor = Color(0xFF242629);
 const kSecondaryLabelColor = Color(0xFF797F8A);
 const kShadowColor = Color.fromRGBO(72, 76, 82, 0.16);
 const kCourseElementIconColor = Color(0xFF17294D);
 
-const kDarkBackgroundColor = Color(0xFF23272A);
-const kDarkCardPopupBackgroundColor = Color(0xFF2C2F33);
+const kBackgroundColor = Color(0xFFE7EEFB);
+const kCardColor = Color(0xFFF5F8FF);
+const kAppBarColor = Colors.white;
+
+const kDarkBackgroundColor = Color(0xFF202225);
+const kDarkCardColor = Color(0xFF292B2F);
+const kDarkAppBarColor = Color(0xFF2F3136);
+
+const kDarkPrimaryLabelColor = Color(0xFF72767D);
 
 const kGreenColor = Color(0xFF4DC591);
 const kOrangeColor = Color(0xFFFF7648);
+const kIUTLaRochelleColor = Color(0xFF0ECFDB);
 
 // Text Styles
 var kLargeTitleStyle = TextStyle(

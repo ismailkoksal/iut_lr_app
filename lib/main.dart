@@ -8,6 +8,7 @@ import 'package:iut_lr_app/constants.dart';
 import 'package:iut_lr_app/pages/schedule_page.dart';
 import 'package:iut_lr_app/routes.dart';
 import 'package:iut_lr_app/services/gpu.dart';
+import 'package:iut_lr_app/settings_store.dart';
 import 'package:iut_lr_app/user.dart';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -24,12 +25,12 @@ void main() async {
   initializeDateFormatting();
   Intl.defaultLocale = 'fr_FR';
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  HttpOverrides.global = new MyHttpOverrides();
+  HttpOverrides.global = MyHttpOverrides();
   String username = await User.studentId;
   username != null
-      ? GpuService.login(studentId: username)
-          .then((_) => runApp(MyApp(initialRoute: Routes.schedule)))
-      : runApp(MyApp(initialRoute: Routes.login));
+      ? GpuService.login(studentId: username).then((_) =>
+          runApp(SettingsStore(child: MyApp(initialRoute: Routes.schedule))))
+      : runApp(SettingsStore(child: MyApp(initialRoute: Routes.login)));
 }
 
 class MyApp extends StatelessWidget {
@@ -42,16 +43,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      initialRoute: initialRoute,
-      routes: {
-        Routes.login: (context) => LoginScreen(),
-        Routes.schedule: (context) => ScheduleScreen(),
-      },
+    return ValueListenableBuilder(
+      valueListenable: SettingsStore
+          .of(context)
+          .theme,
+      builder: (context, theme, child) =>
+          MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: theme,
+            initialRoute: initialRoute,
+            routes: {
+              Routes.login: (context) => LoginScreen(),
+              Routes.schedule: (context) => ScheduleScreen(),
+            },
+          ),
     );
   }
 }

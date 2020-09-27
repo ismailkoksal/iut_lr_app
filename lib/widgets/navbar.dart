@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:iut_lr_app/services/gpu.dart';
+import 'package:iut_lr_app/settings_store.dart';
+import 'package:iut_lr_app/themes/light.dart';
 import 'package:iut_lr_app/user.dart';
 import 'package:iut_lr_app/widgets/week.dart';
 
 import '../apis/dateTime_apis.dart';
 import '../apis/string_apis.dart';
-import '../constants.dart';
 
 class NavBar extends StatefulWidget {
   final DateTime selectedDate;
-  final Function onDateChanged;
+  final ValueChanged<DateTime> onDateChanged;
 
   const NavBar({
     Key key,
@@ -60,7 +60,7 @@ class _NavBarState extends State<NavBar> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).appBarTheme.color,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(40.0)),
       ),
       child: SafeArea(
@@ -70,16 +70,15 @@ class _NavBarState extends State<NavBar> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.exit_to_app),
-                    onPressed: () => GpuService.logOut().then(
-                      (_) => Navigator.pushReplacementNamed(context, '/login'),
-                    ),
-                  ),
-                ],
+              IconButton(
+                icon: Icon(Icons.wb_sunny),
+                onPressed: () =>
+                    SettingsStore.of(context).updateTheme(
+                        Theme
+                            .of(context)
+                            .brightness == Brightness.light
+                            ? darkTheme
+                            : lightTheme),
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 30.0),
@@ -89,22 +88,19 @@ class _NavBarState extends State<NavBar> {
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
                     return snapshot.hasData
                         ? Text(
-                            'Salut, ${snapshot.data.toTitleCase()}!',
-                            style: kSubtitleStyle,
-                          )
+                      'Salut, ${snapshot.data.toTitleCase()}!',
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .headline6,
+                    )
                         : SizedBox.shrink();
                   },
                 ),
               ),
               const SizedBox(height: 10.0),
-              Padding(
-                padding: const EdgeInsets.only(left: 30.0),
-                child: Text(
-                  'Emploi du temps',
-                  style: kLargeTitleStyle,
-                ),
-              ),
-              const SizedBox(height: 25.0),
+              _buildPageTitle(context),
+              const SizedBox(height: 20.0),
               Container(
                 height: 70.0,
                 child: _buildDateList,
@@ -116,7 +112,21 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  Widget get _buildDateList => PageView.builder(
+  Padding _buildPageTitle(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 30.0),
+      child: Text(
+        'Emploi du temps',
+        style: Theme
+            .of(context)
+            .textTheme
+            .headline5,
+      ),
+    );
+  }
+
+  Widget get _buildDateList =>
+      PageView.builder(
         physics: BouncingScrollPhysics(),
         controller: _pageController,
         itemCount: 53,
@@ -125,7 +135,7 @@ class _NavBarState extends State<NavBar> {
               .add(Duration(days: 7 * index))
               .week;
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Week(
               week: week,
               selectedDate: widget.selectedDate,

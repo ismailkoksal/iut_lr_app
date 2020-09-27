@@ -1,42 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../constants.dart';
-
 class DateCard extends StatelessWidget {
   final DateTime date;
-  final bool isSelected;
-  final Function onTap;
+  final bool selected;
+  final VoidCallback onTap;
+  final double width;
 
   const DateCard({
     Key key,
     @required this.date,
-    this.isSelected = false,
+    this.selected = false,
     @required this.onTap,
-  }) : super(key: key);
+    @required this.width,
+  })  : assert(date != null),
+        assert(selected != null),
+        super(key: key);
+
+  String _getFirstLetterOfWeekDay() {
+    return DateFormat.E().format(date)[0].toUpperCase();
+  }
+
+  String _getDay() {
+    return DateFormat.d().format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
+    return Container(
+      height: 70,
+      width: width,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(
-              DateFormat.E().format(date)[0].toUpperCase(),
-              style: kSubtitleStyle.copyWith(
-                color: isSelected ? Colors.white : null,
-                fontWeight: FontWeight.w500,
-              ),
+              _getFirstLetterOfWeekDay(),
+              style: Theme.of(context).textTheme.subtitle1.copyWith(
+                    color: selected ? Colors.white : null,
+                  ),
             ),
             Text(
-              DateFormat.d().format(date),
-              style: kTitle1Style.copyWith(
-                color: isSelected ? Colors.white : null,
-              ),
+              _getDay(),
+              style: Theme.of(context).textTheme.headline6.copyWith(
+                    color: selected ? Colors.white : null,
+                    fontSize: 22.0,
+                  ),
             ),
           ],
         ),

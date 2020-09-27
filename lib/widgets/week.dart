@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:iut_lr_app/constants.dart';
 
 import '../apis/dateTime_apis.dart';
 import 'card/date_card.dart';
@@ -78,7 +77,7 @@ class _WeekState extends State<Week> {
       key: _key,
       children: [
         if (_isIndicatorVisible()) _buildIndicator,
-        _buildWeekRow,
+        if (_width != null) _buildWeekRow,
       ],
     );
   }
@@ -92,21 +91,22 @@ class _WeekState extends State<Week> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.0),
-            color: kOrangeColor,
+            color: Theme.of(context).indicatorColor,
           ),
         ),
       );
 
   Widget get _buildWeekRow => Row(
         children: _dateList.map((date) {
-          return Expanded(
-            child: DateCard(
-              date: date,
-              isSelected: _isSelected(date),
-              onTap: () {
+          return DateCard(
+            width: _width / 7,
+            date: date,
+            selected: _isSelected(date),
+            onTap: () {
+              if (!widget.selectedDate.isAtSameMomentAs(date)) {
                 widget.onDateTap(date);
-              },
-            ),
+              }
+            },
           );
         }).toList(),
       );
