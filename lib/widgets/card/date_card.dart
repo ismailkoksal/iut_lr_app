@@ -5,14 +5,12 @@ class DateCard extends StatelessWidget {
   final DateTime date;
   final bool selected;
   final VoidCallback onTap;
-  final double width;
 
   const DateCard({
     Key key,
     @required this.date,
     this.selected = false,
     @required this.onTap,
-    @required this.width,
   })  : assert(date != null),
         assert(selected != null),
         super(key: key);
@@ -29,7 +27,6 @@ class DateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 70,
-      width: width,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,

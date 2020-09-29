@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:iut_lr_app/models/course.dart';
 import 'package:iut_lr_app/user.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../apis/dateTime_apis.dart';
 import '../../services/gpu.dart';
@@ -27,6 +28,8 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
   Future<List<Course>> _coursesFuture;
   DateTime _currentDateTime = DateTime.now();
   Timer _timer;
+  StreamSubscription<Course> _stream;
+  bool _isLoading = false;
 
   List<Course> _getCoursesByDate(List<Course> courses) {
     courses.sort((a, b) => a.dtstart.compareTo(b.dtend));
@@ -40,15 +43,14 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
   void _loadCourses() async {
     List<Course> courses = await _coursesFuture;
     List<Course> selectedDateCourses = _getCoursesByDate(courses);
-    var future = Future(() {});
-    for (var i = 0; i < selectedDateCourses.length; i++) {
-      future = future.then((_) {
-        return Future.delayed(Duration(milliseconds: 150), () {
-          _courses.insert(i, selectedDateCourses[i]);
-          _listKey.currentState.insertItem(i);
-        });
-      });
-    }
+
+    _stream = Stream.fromIterable(selectedDateCourses)
+        .interval(Duration(milliseconds: 150))
+        .listen((course) {
+      final int i = selectedDateCourses.indexOf(course);
+      _courses.insert(i, selectedDateCourses[i]);
+      _listKey.currentState.insertItem(i);
+    });
   }
 
   void _removeCourses() {
@@ -80,10 +82,10 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
       bool isLoggedIn = await GpuService.isLoggedIn();
       if (!isLoggedIn) {
         GpuService.login(studentId: await User.studentId).then((isLoggedIn) => {
-          if (isLoggedIn)
-            _coursesFuture =
-                GpuService.getSchedule(week: widget.selectedDate.week)
-        });
+              if (isLoggedIn)
+                _coursesFuture =
+                    GpuService.getSchedule(week: widget.selectedDate.week)
+            });
       }
     }
   }
@@ -92,9 +94,12 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
   void didUpdateWidget(CourseList oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedDate.week != widget.selectedDate.week) {
-      _coursesFuture = GpuService.getSchedule(week: widget.selectedDate.week);
+      _isLoading = true;
+      _coursesFuture = GpuService.getSchedule(week: widget.selectedDate.week)
+          .whenComplete(() => _isLoading = false);
     }
     if (oldWidget.selectedDate != widget.selectedDate) {
+      _stream.cancel();
       _removeCourses();
       _loadCourses();
     }
@@ -109,16 +114,18 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedList(
-      key: _listKey,
-      initialItemCount: _courses.length,
-      physics: BouncingScrollPhysics(),
-      itemBuilder: _buildItem,
-    );
+    return _isLoading
+        ? Center(child: CircularProgressIndicator())
+        : AnimatedList(
+            key: _listKey,
+            initialItemCount: _courses.length,
+            physics: BouncingScrollPhysics(),
+            itemBuilder: _buildItem,
+          );
   }
 
-  Widget _buildItem(BuildContext context, int index,
-      Animation<double> animation) {
+  Widget _buildItem(
+      BuildContext context, int index, Animation<double> animation) {
     Course course = _courses[index];
     return Padding(
       padding: EdgeInsets.only(
@@ -133,7 +140,7 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
           end: Offset.zero,
         ))),
         child: FadeTransition(
-          opacity: animation,
+          opacity: CurvedAnimation(curve: Curves.easeOut, parent: animation),
           child: IntrinsicHeight(
             child: Row(
               children: [
@@ -148,11 +155,10 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildCourseCard(Course course) =>
-      Expanded(
+  Widget _buildCourseCard(Course course) => Expanded(
         child: Padding(
           padding:
-          EdgeInsets.only(bottom: course == _courses.last ? 0.0 : 20.0),
+              EdgeInsets.only(bottom: course == _courses.last ? 0.0 : 10.0),
           child: CourseCard(
             course: course,
             isActive: _isInClass(course),
@@ -160,8 +166,7 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
         ),
       );
 
-  Widget _buildCourseTime(Course course) =>
-      Container(
+  Widget _buildCourseTime(Course course) => Container(
         width: 46.0,
         padding: const EdgeInsets.only(top: 5.0),
         child: Column(
@@ -169,18 +174,12 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
           children: [
             Text(
               DateFormat.Hm().format(course.dtstart.toLocal()),
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .subtitle1,
+              style: Theme.of(context).textTheme.subtitle1,
             ),
             const SizedBox(height: 5.0),
             Text(
               DateFormat.Hm().format(course.dtend.toLocal()),
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .subtitle1,
+              style: Theme.of(context).textTheme.subtitle1,
             ),
           ],
         ),

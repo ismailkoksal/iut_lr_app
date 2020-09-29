@@ -35,6 +35,8 @@ dependencies:
   flutter_secure_storage: ^3.3.4
   html: ^0.14.0+3
   google_fonts: ^1.1.0
+  rxdart: ^0.24.1
+  shared_preferences: ^0.5.12
 
 dev_dependencies:
   flutter_test:

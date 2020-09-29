@@ -77,7 +77,7 @@ class _WeekState extends State<Week> {
       key: _key,
       children: [
         if (_isIndicatorVisible()) _buildIndicator,
-        if (_width != null) _buildWeekRow,
+        _buildWeekRow,
       ],
     );
   }
@@ -98,15 +98,16 @@ class _WeekState extends State<Week> {
 
   Widget get _buildWeekRow => Row(
         children: _dateList.map((date) {
-          return DateCard(
-            width: _width / 7,
-            date: date,
-            selected: _isSelected(date),
-            onTap: () {
-              if (!widget.selectedDate.isAtSameMomentAs(date)) {
-                widget.onDateTap(date);
-              }
-            },
+          return Expanded(
+            child: DateCard(
+              date: date,
+              selected: _isSelected(date),
+              onTap: () {
+                if (!widget.selectedDate.isAtSameMomentAs(date)) {
+                  widget.onDateTap(date);
+                }
+              },
+            ),
           );
         }).toList(),
       );

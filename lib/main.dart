@@ -27,6 +27,11 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   HttpOverrides.global = MyHttpOverrides();
   String username = await User.studentId;
+  // SystemChrome.setSystemUIOverlayStyle(
+  //   SystemUiOverlayStyle(
+  //     systemNavigationBarColor: kDarkCardColor,
+  //   ),
+  // );
   username != null
       ? GpuService.login(studentId: username).then((_) =>
           runApp(SettingsStore(child: MyApp(initialRoute: Routes.schedule))))
@@ -44,19 +49,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: SettingsStore
-          .of(context)
-          .theme,
-      builder: (context, theme, child) =>
-          MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: theme,
-            initialRoute: initialRoute,
-            routes: {
-              Routes.login: (context) => LoginScreen(),
-              Routes.schedule: (context) => ScheduleScreen(),
-            },
-          ),
+      valueListenable: SettingsStore.of(context).theme,
+      builder: (context, theme, child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: theme,
+        initialRoute: initialRoute,
+        routes: {
+          Routes.login: (context) => LoginScreen(),
+          Routes.schedule: (context) => ScheduleScreen(),
+        },
+      ),
     );
   }
 }
