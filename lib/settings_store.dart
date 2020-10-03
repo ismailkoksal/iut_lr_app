@@ -1,21 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'themes/light.dart';
-
-enum AppTheme {
-  Light,
-  Dark,
-}
-
-String enumName(AppTheme anyEnum) {
-  return anyEnum.toString().split('.')[1];
-}
-
-final appThemeData = {
-  AppTheme.Light: lightTheme,
-  AppTheme.Dark: darkTheme,
-};
+import 'themes/theme.dart';
 
 class SettingsStore extends InheritedWidget {
   final ValueNotifier<ThemeData> theme =

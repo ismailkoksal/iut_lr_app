@@ -2,54 +2,53 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iut_lr_app/apis/dateTime_apis.dart';
+import 'package:iut_lr_app/bloc/get_courses_bloc.dart';
+import 'package:iut_lr_app/bloc/get_selected_date_bloc.dart';
 import 'package:iut_lr_app/models/course.dart';
-import 'package:iut_lr_app/user.dart';
+import 'package:iut_lr_app/models/course_response.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../../apis/dateTime_apis.dart';
-import '../../services/gpu.dart';
 import '../card/course_card.dart';
 
 class CourseList extends StatefulWidget {
-  final DateTime selectedDate;
-
   const CourseList({
     Key key,
-    @required this.selectedDate,
   }) : super(key: key);
 
   @override
   _CourseListState createState() => _CourseListState();
 }
 
-class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
+class _CourseListState extends State<CourseList> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   final List<Course> _courses = [];
-  Future<List<Course>> _coursesFuture;
   DateTime _currentDateTime = DateTime.now();
   Timer _timer;
-  StreamSubscription<Course> _stream;
-  bool _isLoading = false;
 
-  List<Course> _getCoursesByDate(List<Course> courses) {
-    courses.sort((a, b) => a.dtstart.compareTo(b.dtend));
-    return courses
-        .where((course) =>
-            DateFormat.yMd().format(course.dtstart) ==
-            DateFormat.yMd().format(widget.selectedDate))
-        .toList();
+  Stream<List<Course>> _getSelectedDateCourses() {
+    return Rx.combineLatest2(
+        coursesBloc.subject.stream, selectedDateBloc.subject.stream,
+        (CourseResponse courseResponse, DateTime selectedDate) {
+      if (courseResponse != null) {
+        return courseResponse.courses
+            .where((course) =>
+                DateFormat.yMd().format(course.dtstart.toLocal()) ==
+                DateFormat.yMd().format(selectedDate))
+            .toList();
+      }
+      return [];
+    });
   }
 
-  void _loadCourses() async {
-    List<Course> courses = await _coursesFuture;
-    List<Course> selectedDateCourses = _getCoursesByDate(courses);
-
-    _stream = Stream.fromIterable(selectedDateCourses)
-        .interval(Duration(milliseconds: 150))
-        .listen((course) {
-      final int i = selectedDateCourses.indexOf(course);
-      _courses.insert(i, selectedDateCourses[i]);
-      _listKey.currentState.insertItem(i);
+  void _loadCourses() {
+    _getSelectedDateCourses().switchMap((value) {
+      _removeCourses();
+      return Stream.fromIterable(value.asMap().entries)
+          .interval(Duration(milliseconds: 150));
+    }).listen((event) {
+      _courses.insert(event.key, event.value);
+      _listKey.currentState.insertItem(event.key);
     });
   }
 
@@ -65,63 +64,45 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
         _currentDateTime.isBefore(course.dtend.toLocal());
   }
 
+  void _updateTimer() {
+    _timer = Timer.periodic(
+      Duration(seconds: 1),
+      (timer) => setState(() => _currentDateTime = DateTime.now()),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _coursesFuture = GpuService.getSchedule(week: widget.selectedDate.week);
-    _timer = Timer.periodic(Duration(seconds: 1),
-        (timer) => setState(() => _currentDateTime = DateTime.now()));
     _loadCourses();
-  }
-
-  @override
-  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      bool isLoggedIn = await GpuService.isLoggedIn();
-      if (!isLoggedIn) {
-        GpuService.login(studentId: await User.studentId).then((isLoggedIn) => {
-              if (isLoggedIn)
-                _coursesFuture =
-                    GpuService.getSchedule(week: widget.selectedDate.week)
-            });
-      }
-    }
-  }
-
-  @override
-  void didUpdateWidget(CourseList oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedDate.week != widget.selectedDate.week) {
-      _isLoading = true;
-      _coursesFuture = GpuService.getSchedule(week: widget.selectedDate.week)
-          .whenComplete(() => _isLoading = false);
-    }
-    if (oldWidget.selectedDate != widget.selectedDate) {
-      _stream.cancel();
-      _removeCourses();
-      _loadCourses();
-    }
+    _updateTimer();
+    selectedDateBloc.subject.stream
+        .map((date) => date.week)
+        .distinct()
+        .listen((week) => coursesBloc.getCourses(week));
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _timer.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _isLoading
-        ? Center(child: CircularProgressIndicator())
-        : AnimatedList(
-            key: _listKey,
-            initialItemCount: _courses.length,
-            physics: BouncingScrollPhysics(),
-            itemBuilder: _buildItem,
-          );
+    return StreamBuilder<CourseResponse>(
+        stream: coursesBloc.subject.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return AnimatedList(
+              key: _listKey,
+              initialItemCount: _courses.length,
+              physics: BouncingScrollPhysics(),
+              itemBuilder: _buildItem,
+            );
+          }
+          return Center(child: CircularProgressIndicator());
+        });
   }
 
   Widget _buildItem(
@@ -136,11 +117,11 @@ class _CourseListState extends State<CourseList> with WidgetsBindingObserver {
           curve: Curves.easeOut,
           parent: animation,
         ).drive((Tween<Offset>(
-          begin: Offset(0, -0.3),
+          begin: Offset(0, -1),
           end: Offset.zero,
         ))),
         child: FadeTransition(
-          opacity: CurvedAnimation(curve: Curves.easeOut, parent: animation),
+          opacity: CurvedAnimation(curve: Curves.easeIn, parent: animation),
           child: IntrinsicHeight(
             child: Row(
               children: [

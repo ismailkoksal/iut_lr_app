@@ -11,7 +11,7 @@ class ICAL {
   static const LOCATION = 'LOCATION'; // Lieu de l'événement
   static const DESCRIPTION = 'DESCRIPTION'; // Description de l'événement
 
-  static String icsToJson(String iCalendar) {
+  static List<dynamic> icsToJson(String iCalendar) {
     final events = [];
     var currentEvent = {};
 
@@ -69,6 +69,7 @@ class ICAL {
           break;
       }
     }
-    return json.encode(events);
+
+    return jsonDecode(jsonEncode(events));
   }
 }

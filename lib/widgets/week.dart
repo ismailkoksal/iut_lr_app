@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iut_lr_app/bloc/get_selected_date_bloc.dart';
 
 import '../apis/dateTime_apis.dart';
 import 'card/date_card.dart';
@@ -7,13 +8,11 @@ import 'card/date_card.dart';
 class Week extends StatefulWidget {
   final int week;
   final DateTime selectedDate;
-  final Function onDateTap;
 
   const Week({
     Key key,
     @required this.week,
     @required this.selectedDate,
-    @required this.onDateTap,
   }) : super(key: key);
 
   @override
@@ -50,18 +49,15 @@ class _WeekState extends State<Week> {
         7, (index) => firstMondayOfWeek.add(Duration(days: index)));
   }
 
-  bool _isSelected(DateTime date) {
-    return DateFormat.yMd().format(date) ==
-        DateFormat.yMd().format(widget.selectedDate);
-  }
+  bool _isSelected(DateTime date) =>
+      DateFormat.yMd().format(date) ==
+      DateFormat.yMd().format(widget.selectedDate);
 
-  int _getSelectedDateIndex() {
-    return _dateList.indexWhere((date) => _isSelected(date));
-  }
+  int get _getSelectedDateIndex =>
+      _dateList.indexWhere((date) => _isSelected(date));
 
-  bool _isIndicatorVisible() {
-    return widget.week == widget.selectedDate.week && _width != null;
-  }
+  bool get _isIndicatorVisible =>
+      widget.week == widget.selectedDate.week && _width != null;
 
   @override
   void initState() {
@@ -76,18 +72,19 @@ class _WeekState extends State<Week> {
     return Stack(
       key: _key,
       children: [
-        if (_isIndicatorVisible()) _buildIndicator,
+        if (_isIndicatorVisible) _buildIndicator,
         _buildWeekRow,
       ],
     );
   }
 
   Widget get _buildIndicator => AnimatedPositioned(
-        duration: Duration(milliseconds: 500),
-        height: 70,
+        top: 0,
+        bottom: 0,
+        left: _width / 7 * _getSelectedDateIndex,
         width: _width / 7,
+        duration: Duration(milliseconds: 500),
         curve: Curves.easeOutCubic,
-        left: _width / 7 * _getSelectedDateIndex(),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.0),
@@ -104,7 +101,7 @@ class _WeekState extends State<Week> {
               selected: _isSelected(date),
               onTap: () {
                 if (!widget.selectedDate.isAtSameMomentAs(date)) {
-                  widget.onDateTap(date);
+                  selectedDateBloc.setSelectedDate(date);
                 }
               },
             ),

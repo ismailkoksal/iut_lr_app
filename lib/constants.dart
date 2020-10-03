@@ -13,9 +13,12 @@ const kBackgroundColor = Color(0xFFE7EEFB);
 const kCardColor = Color(0xFFF5F8FF);
 const kAppBarColor = Colors.white;
 
-const kDarkBackgroundColor = Color(0xFF202225);
-const kDarkCardColor = Color(0xFF292B2F);
-const kDarkAppBarColor = Color(0xFF2F3136);
+const kDarkBackgroundColor = Color(0xFF15202b);
+const kDarkCardColor = Color(0xFF253341);
+const kDarkAppBarColor = Color(0xFF192734);
+// const kDarkBackgroundColor = Color(0xFF202225);
+// const kDarkCardColor = Color(0xFF292B2F);
+// const kDarkAppBarColor = Color(0xFF2F3136);
 
 const kDarkPrimaryLabelColor = Color(0xFF72767D);
 

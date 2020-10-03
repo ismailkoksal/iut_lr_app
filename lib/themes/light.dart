@@ -12,17 +12,6 @@ ThemeData get lightTheme => ThemeData.light().copyWith(
       indicatorColor: kIUTLaRochelleColor,
     );
 
-ThemeData get darkTheme => ThemeData.dark().copyWith(
-      primaryColor: kIUTLaRochelleColor,
-      backgroundColor: kDarkBackgroundColor,
-      appBarTheme: AppBarTheme(
-        color: kDarkCardColor,
-      ),
-      cardColor: kDarkAppBarColor,
-      textTheme: darkTextTheme,
-      indicatorColor: kIUTLaRochelleColor,
-    );
-
 TextTheme get lightTextTheme => ThemeData.light().textTheme.copyWith(
       headline6: ThemeData.light().textTheme.headline6.copyWith(
             fontWeight: FontWeight.w700,

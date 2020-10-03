@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -67,9 +65,9 @@ class GpuService {
   }
 
   static List<Course> parseEvents(String responseBody) {
-    final parsed =
-        json.decode(ICAL.icsToJson(responseBody)).cast<Map<String, dynamic>>();
-    return parsed.map<Course>((json) => Course.fromJson(json)).toList();
+    return (ICAL.icsToJson(responseBody) as List)
+        .map<Course>((e) => Course.fromJson(e))
+        .toList();
   }
 
   static Future<bool> isLoggedIn() async {

@@ -27,11 +27,11 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   HttpOverrides.global = MyHttpOverrides();
   String username = await User.studentId;
-  // SystemChrome.setSystemUIOverlayStyle(
-  //   SystemUiOverlayStyle(
-  //     systemNavigationBarColor: kDarkCardColor,
-  //   ),
-  // );
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      systemNavigationBarColor: kDarkAppBarColor,
+    ),
+  );
   username != null
       ? GpuService.login(studentId: username).then((_) =>
           runApp(SettingsStore(child: MyApp(initialRoute: Routes.schedule))))

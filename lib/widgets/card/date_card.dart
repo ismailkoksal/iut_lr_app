@@ -26,7 +26,6 @@ class DateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
