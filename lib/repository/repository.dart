@@ -4,6 +4,7 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:iut_lr_app/ical.dart';
 import 'package:iut_lr_app/models/course_response.dart';
 
+import '../interceptor.dart';
 import '../user.dart';
 
 class CourseRepository {
@@ -13,7 +14,9 @@ class CourseRepository {
   var getCoursesUrl = '$baseUrl/gpu/gpu2vcs.php';
 
   CourseRepository() {
-    _dio..interceptors.add(CookieManager(_cookieJar));
+    _dio
+      ..interceptors.add(CookieManager(_cookieJar))
+      ..interceptors.add(GpuApiInterceptor());
   }
 
   Future<CourseResponse> getCourses(int week) async {

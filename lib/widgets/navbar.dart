@@ -87,21 +87,18 @@ class _NavBarState extends State<NavBar> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(left: 30.0, top: 30.0),
-                      child: FutureBuilder(
+                      child: FutureBuilder<String>(
                         future: _studentName,
-                        builder: (BuildContext context,
-                            AsyncSnapshot<String> snapshot) {
+                        builder: (context, snapshot) {
                           return snapshot.hasData
                               ? Text(
                                   'Salut, ${snapshot.data.toTitleCase()}!',
                                   style: Theme.of(context).textTheme.headline6,
                                 )
-                              : SizedBox.shrink();
+                              : _buildPageTitle(context);
                         },
                       ),
                     ),
-                    // const SizedBox(height: 10.0),
-                    // _buildPageTitle(context),
                     const SizedBox(height: 20.0),
                     Container(
                       height: 70.0,
@@ -117,13 +114,10 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  Padding _buildPageTitle(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 30.0),
-      child: Text(
-        'Emploi du temps',
-        style: Theme.of(context).textTheme.headline5,
-      ),
+  Widget _buildPageTitle(BuildContext context) {
+    return Text(
+      'Emploi du temps',
+      style: Theme.of(context).textTheme.headline6,
     );
   }
 
@@ -131,20 +125,21 @@ class _NavBarState extends State<NavBar> {
         physics: BouncingScrollPhysics(),
         controller: _pageController,
         itemCount: 53,
-        itemBuilder: (BuildContext context, int index) {
+        itemBuilder: (context, index) {
           int week = DateTime(_getSchoolStartYear(), DateTime.september)
               .add(Duration(days: 7 * index))
               .week;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: StreamBuilder<Object>(
-                stream: selectedDateBloc.subject.stream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Week(week: week, selectedDate: snapshot.data);
-                  }
-                  return SizedBox.shrink();
-                }),
+            child: StreamBuilder<DateTime>(
+              stream: selectedDateBloc.subject.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Week(week: week, selectedDate: snapshot.data);
+                }
+                return SizedBox.shrink();
+              },
+            ),
           );
         },
       );

@@ -6,8 +6,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' show parse;
 
-import '../ical.dart';
-import '../models/course.dart';
 import '../user.dart';
 
 class GpuService {
@@ -17,6 +15,7 @@ class GpuService {
   static final _storage = FlutterSecureStorage();
 
   static Future<bool> login({@required String studentId}) async {
+    print('login');
     FormData formData = new FormData.fromMap({
       'modeconnect': 'connect',
       'util': studentId,
@@ -51,26 +50,8 @@ class GpuService {
     }
   }
 
-  static Future<List<Course>> getSchedule({@required int week}) async {
-    Response response = await _dio.get(
-      _baseUrl + '/gpu/gpu2vcs.php',
-      queryParameters: {
-        'semaine': week,
-        'prof_etu': 'ETU',
-        'etudiant': await User.studentId,
-      },
-    );
-
-    return compute(parseEvents, response.data.toString());
-  }
-
-  static List<Course> parseEvents(String responseBody) {
-    return (ICAL.icsToJson(responseBody) as List)
-        .map<Course>((e) => Course.fromJson(e))
-        .toList();
-  }
-
   static Future<bool> isLoggedIn() async {
+    print('isLoggedIn');
     Response response = await _dio.get(
       _baseUrl + '/gpu/index.php',
       queryParameters: {'page_param': 'accueil.php'},

@@ -28,23 +28,25 @@ class _CourseListState extends State<CourseList> {
 
   Stream<List<Course>> _getSelectedDateCourses() {
     return Rx.combineLatest2(
-        coursesBloc.subject.stream, selectedDateBloc.subject.stream,
-        (CourseResponse courseResponse, DateTime selectedDate) {
-      if (courseResponse != null) {
-        return courseResponse.courses
-            .where((course) =>
-                DateFormat.yMd().format(course.dtstart.toLocal()) ==
-                DateFormat.yMd().format(selectedDate))
-            .toList();
-      }
-      return [];
-    });
+      coursesBloc.subject.stream,
+      selectedDateBloc.subject.stream,
+      (CourseResponse courseResponse, DateTime selectedDate) {
+        if (courseResponse != null) {
+          return courseResponse.courses
+              .where((course) =>
+                  DateFormat.yMd().format(course.dtstart.toLocal()) ==
+                  DateFormat.yMd().format(selectedDate))
+              .toList();
+        }
+        return null;
+      },
+    );
   }
 
   void _loadCourses() {
-    _getSelectedDateCourses().switchMap((value) {
+    _getSelectedDateCourses().switchMap((courses) {
       _removeCourses();
-      return Stream.fromIterable(value.asMap().entries)
+      return Stream.fromIterable((courses ?? []).asMap().entries)
           .interval(Duration(milliseconds: 150));
     }).listen((event) {
       _courses.insert(event.key, event.value);
@@ -90,19 +92,26 @@ class _CourseListState extends State<CourseList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<CourseResponse>(
-        stream: coursesBloc.subject.stream,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return AnimatedList(
-              key: _listKey,
-              initialItemCount: _courses.length,
-              physics: BouncingScrollPhysics(),
-              itemBuilder: _buildItem,
-            );
-          }
-          return Center(child: CircularProgressIndicator());
-        });
+    return StreamBuilder<List<Course>>(
+      stream: _getSelectedDateCourses(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return snapshot.data.isNotEmpty
+              ? AnimatedList(
+                  key: _listKey,
+                  initialItemCount: _courses.length,
+                  physics: BouncingScrollPhysics(),
+                  itemBuilder: _buildItem,
+                )
+              : Center(
+                  child: Text(
+                  'Aucun cours',
+                  style: Theme.of(context).textTheme.headline6,
+                ));
+        }
+        return Center(child: CircularProgressIndicator());
+      },
+    );
   }
 
   Widget _buildItem(
@@ -111,13 +120,13 @@ class _CourseListState extends State<CourseList> {
     return Padding(
       padding: EdgeInsets.only(
           top: course == _courses.first ? 30.0 : 0.0,
-          bottom: course == _courses.last ? 40.0 : 0.0),
+          bottom: course == _courses.last ? 30.0 : 0.0),
       child: SlideTransition(
         position: CurvedAnimation(
           curve: Curves.easeOut,
           parent: animation,
         ).drive((Tween<Offset>(
-          begin: Offset(0, -1),
+          begin: const Offset(0, -1),
           end: Offset.zero,
         ))),
         child: FadeTransition(
