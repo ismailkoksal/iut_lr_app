@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tinycolor/tinycolor.dart';
 
 import '../../models/course.dart';
 
@@ -14,15 +15,18 @@ class CourseCard extends StatelessWidget {
         assert(isActive != null),
         super(key: key);
 
+  Color _getCardBackgroundColor(BuildContext context) {
+    final theme = Theme.of(context);
+    return isActive ? theme.indicatorColor : theme.cardColor;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30.0),
-        color: isActive
-            ? Theme.of(context).indicatorColor
-            : Theme.of(context).cardColor,
+        color: _getCardBackgroundColor(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,15 +48,24 @@ class CourseCard extends StatelessWidget {
                   if (course.description.prof != '') _buildTeacher(context),
                 ],
               ),
-              Text(
-                course.summary.split(' / ')[1],
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText1
-                    .copyWith(color: isActive ? Colors.white : null),
+              Container(
+                decoration: ShapeDecoration(
+                  color: _getCardBackgroundColor(context).darken(),
+                  shape: StadiumBorder(),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                height: 32,
+                alignment: Alignment.center,
+                child: Text(
+                  course.summary.split(' / ')[1],
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline6
+                      .copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+                ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -10,6 +11,8 @@ import 'package:iut_lr_app/routes.dart';
 import 'package:iut_lr_app/services/gpu.dart';
 import 'package:iut_lr_app/settings_store.dart';
 import 'package:iut_lr_app/user.dart';
+
+import 'ad.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -27,9 +30,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   HttpOverrides.global = MyHttpOverrides();
   SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      systemNavigationBarColor: kDarkAppBarColor,
-    ),
+    SystemUiOverlayStyle(systemNavigationBarColor: kDarkAppBarColor),
   );
   String username = await User.studentId;
   username != null
@@ -38,7 +39,7 @@ void main() async {
       : runApp(SettingsStore(child: MyApp(initialRoute: Routes.login)));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final String initialRoute;
 
   const MyApp({
@@ -47,13 +48,32 @@ class MyApp extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAdMob.instance
+        .initialize(appId: 'ca-app-pub-1300446897118821~9842467941');
+    myBanner
+      ..load()
+      ..show(
+        anchorType: AnchorType.bottom,
+        anchorOffset: 0.0,
+        horizontalCenterOffset: 0.0,
+      );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: SettingsStore.of(context).theme,
       builder: (context, theme, child) => MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
-        initialRoute: initialRoute,
+        initialRoute: widget.initialRoute,
         routes: {
           Routes.login: (context) => LoginScreen(),
           Routes.schedule: (context) => ScheduleScreen(),
@@ -72,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _studentId;
   String _error;
 
-  void login(BuildContext context) {
+  void login() {
     GpuService.login(studentId: _studentId).then((isLoggedIn) {
       if (isLoggedIn) {
         Navigator.pushReplacementNamed(context, '/schedule');
@@ -118,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 bottom: 20.0,
                 right: 0.0,
                 child: FlatButton(
-                  onPressed: () => login(context),
+                  onPressed: () => login(),
                   child: Text('Connexion'),
                 ),
               )

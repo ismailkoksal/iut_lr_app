@@ -40,6 +40,8 @@ dependencies:
   flutter_svg: ^0.19.0
   animated_stream_list: ^1.1.0
   flutter_bloc: ^6.0.5
+  firebase_admob: ^0.10.0+1
+  tinycolor: ^1.0.3
 
 dev_dependencies:
   flutter_test:

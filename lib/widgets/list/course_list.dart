@@ -31,14 +31,11 @@ class _CourseListState extends State<CourseList> {
       coursesBloc.subject.stream,
       selectedDateBloc.subject.stream,
       (CourseResponse courseResponse, DateTime selectedDate) {
-        if (courseResponse != null) {
-          return courseResponse.courses
-              .where((course) =>
-                  DateFormat.yMd().format(course.dtstart.toLocal()) ==
-                  DateFormat.yMd().format(selectedDate))
-              .toList();
-        }
-        return null;
+        return courseResponse?.courses
+            ?.where((course) =>
+                DateFormat.yMd().format(course.dtstart.toLocal()) ==
+                DateFormat.yMd().format(selectedDate))
+            ?.toList();
       },
     );
   }
@@ -46,7 +43,7 @@ class _CourseListState extends State<CourseList> {
   void _loadCourses() {
     _getSelectedDateCourses().switchMap((courses) {
       _removeCourses();
-      return Stream.fromIterable((courses ?? []).asMap().entries)
+      return Stream.fromIterable(courses?.asMap()?.entries ?? [])
           .interval(Duration(milliseconds: 150));
     }).listen((event) {
       _courses.insert(event.key, event.value);
@@ -120,7 +117,7 @@ class _CourseListState extends State<CourseList> {
     return Padding(
       padding: EdgeInsets.only(
           top: course == _courses.first ? 30.0 : 0.0,
-          bottom: course == _courses.last ? 30.0 : 0.0),
+          bottom: course == _courses.last ? _getBottomPadding + 30.0 : 0.0),
       child: SlideTransition(
         position: CurvedAnimation(
           curve: Curves.easeOut,
@@ -174,4 +171,14 @@ class _CourseListState extends State<CourseList> {
           ],
         ),
       );
+
+  double get _getBottomPadding {
+    double screenHeight = MediaQuery.of(context).size.height;
+    if (screenHeight <= 400) {
+      return 30;
+    } else if (screenHeight >= 720) {
+      return 90;
+    }
+    return 50;
+  }
 }

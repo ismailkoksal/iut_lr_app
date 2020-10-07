@@ -50,6 +50,20 @@ class GpuService {
     }
   }
 
+  static Future reconnect() async {
+    FormData formData = new FormData.fromMap({
+      'modeconnect': 'connect',
+      'util': await User.studentId,
+      'acct_pass': '123',
+    });
+
+    return await _dio.post(_baseUrl + '/sat/index.php',
+        queryParameters: {
+          'page_param': 'accueilsatellys.php',
+        },
+        data: formData);
+  }
+
   static Future<bool> isLoggedIn() async {
     print('isLoggedIn');
     Response response = await _dio.get(

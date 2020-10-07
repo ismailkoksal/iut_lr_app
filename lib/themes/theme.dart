@@ -1,9 +1,11 @@
 import 'dark.dart';
 import 'light.dart';
+import 'shrine.dart';
 
 enum AppTheme {
   Light,
   Dark,
+  Shrine,
 }
 
 String enumName(AppTheme anyEnum) {
@@ -13,4 +15,5 @@ String enumName(AppTheme anyEnum) {
 final appThemeData = {
   AppTheme.Light: lightTheme,
   AppTheme.Dark: darkTheme,
+  AppTheme.Shrine: buildShrineTheme(),
 };

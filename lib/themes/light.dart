@@ -36,3 +36,8 @@ TextTheme get darkTextTheme => lightTextTheme.copyWith(
         color: kDarkPrimaryLabelColor,
       ),
     );
+
+ThemeData _buildLightTheme() {
+  final ThemeData base = ThemeData.light();
+  return base.copyWith();
+}

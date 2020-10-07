@@ -11,5 +11,5 @@ ThemeData get darkTheme => ThemeData.dark().copyWith(
       ),
       cardColor: kDarkCardColor,
       textTheme: darkTextTheme,
-      indicatorColor: Color(0xFF1da1f2),
+      indicatorColor: Colors.blue,
     );
