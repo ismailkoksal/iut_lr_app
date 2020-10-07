@@ -33,8 +33,26 @@ class CourseCard extends StatelessWidget {
                   color: isActive ? Colors.white : null,
                 ),
           ),
-          if (course.description.salle != '') _buildClassRoom(context),
-          if (course.description.prof != '') _buildTeacher(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (course.description.salle != '') _buildClassRoom(context),
+                  if (course.description.prof != '') _buildTeacher(context),
+                ],
+              ),
+              Text(
+                course.summary.split(' / ')[1],
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText1
+                    .copyWith(color: isActive ? Colors.white : null),
+              ),
+            ],
+          )
         ],
       ),
     );
