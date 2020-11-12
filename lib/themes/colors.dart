@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
 
-const Color shrinePink50 = Color(0xFFFEEAE6);
-const Color shrinePink100 = Color(0xFFFEDBD0);
-const Color shrinePink300 = Color(0xFFFBB8AC);
-const Color shrinePink400 = Color(0xFFEAA4A4);
+class CustomColor {
+  static const MaterialColor darkBlue =
+      MaterialColor(_darkBluePrimaryValue, <int, Color>{
+    50: Color(0xFFE3E4E6),
+    100: Color(0xFFB9BCBF),
+    200: Color(0xFF8A9095),
+    300: Color(0xFF5B636B),
+    400: Color(0xFF38414B),
+    500: Color(_darkBluePrimaryValue),
+    600: Color(0xFF121C26),
+    700: Color(0xFF0F1820),
+    800: Color(0xFF0C131A),
+    900: Color(0xFF060B10),
+  });
+  static const int _darkBluePrimaryValue = 0xFF15202B;
 
-const Color shrineBrown900 = Color(0xFF442B2D);
-const Color shrineBrown600 = Color(0xFF7D4F52);
-
-const Color shrineErrorRed = Color(0xFFC5032B);
-
-const Color shrineSurfaceWhite = Color(0xFFFFFBFA);
-const Color shrineBackgroundWhite = Colors.white;
+  static const MaterialColor darkBlueAccent =
+      MaterialColor(_darkBlueAccentValue, <int, Color>{
+    100: Color(0xFF53A7FF),
+    200: Color(_darkBlueAccentValue),
+    400: Color(0xFF0073EC),
+    700: Color(0xFF0066D3),
+  });
+  static const int _darkBlueAccentValue = 0xFF208CFF;
+}

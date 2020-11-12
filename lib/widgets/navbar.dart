@@ -76,7 +76,7 @@ class _NavBarState extends State<NavBar> {
                   onPressed: () => SettingsStore.of(context).updateTheme(
                       SettingsStore.of(context).theme.value ==
                               appThemeData[AppTheme.Dark]
-                          ? AppTheme.Shrine
+                          ? AppTheme.Light
                           : AppTheme.Dark),
                 ),
               ),

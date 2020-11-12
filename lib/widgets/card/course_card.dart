@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:iut_lr_app/themes/colors.dart';
 
 import '../../models/course.dart';
 
@@ -37,32 +37,31 @@ class CourseCard extends StatelessWidget {
                   color: isActive ? Colors.white : null,
                 ),
           ),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (course.description.salle != '') _buildClassRoom(context),
-                  if (course.description.prof != '') _buildTeacher(context),
+                  if (course.description.salle != '')
+                    _buildSubtitle(
+                        context, Icons.place, course.description.salle),
+                  if (course.description.prof != '')
+                    _buildSubtitle(
+                        context, Icons.person, course.description.prof),
                 ],
               ),
               Container(
                 decoration: ShapeDecoration(
-                  color: _getCardBackgroundColor(context).darken(),
+                  color: CustomColor.darkBlue[600],
                   shape: StadiumBorder(),
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 height: 32,
                 alignment: Alignment.center,
-                child: Text(
-                  course.summary.split(' / ')[1],
-                  style: Theme.of(context)
-                      .textTheme
-                      .headline6
-                      .copyWith(fontSize: 12, fontWeight: FontWeight.normal),
-                ),
+                child: Text(course.summary.split(' / ')[1],
+                    style: Theme.of(context).chipTheme.labelStyle),
               ),
             ],
           ),
@@ -71,50 +70,20 @@ class CourseCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTeacher(BuildContext context) => Column(
+  Widget _buildSubtitle(BuildContext context, IconData icon, String text) =>
+      Row(
         children: [
-          const SizedBox(height: 5.0),
-          Row(
-            children: [
-              Icon(
-                Icons.person,
-                size: 18.0,
-                color: isActive
-                    ? Colors.white
-                    : Theme.of(context).textTheme.bodyText1.color,
-              ),
-              const SizedBox(width: 10.0),
-              Text(
-                course.description.prof,
-                style: Theme.of(context).textTheme.bodyText1.copyWith(
-                      color: isActive ? Colors.white : null,
-                    ),
-              ),
-            ],
+          Icon(
+            icon,
+            size: 15,
+            color: isActive ? Colors.white : null,
           ),
-        ],
-      );
-
-  Widget _buildClassRoom(BuildContext context) => Column(
-        children: [
-          const SizedBox(height: 15.0),
-          Row(
-            children: [
-              Icon(
-                Icons.place,
-                size: 18.0,
-                color: isActive
-                    ? Colors.white
-                    : Theme.of(context).textTheme.bodyText1.color,
-              ),
-              const SizedBox(width: 10.0),
-              Text(
-                course.description.salle,
-                style: Theme.of(context).textTheme.bodyText1.copyWith(
-                      color: isActive ? Colors.white : null,
-                    ),
-              ),
-            ],
+          const SizedBox(width: 10.0),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.subtitle2.copyWith(
+                  color: isActive ? Colors.white : null,
+                ),
           ),
         ],
       );
