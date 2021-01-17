@@ -23,17 +23,8 @@ class _NavBarState extends State<NavBar> {
   Future<String> _studentName;
 
   DateTime _getFirstMondayOfWeek({int week}) {
-    DateTime date =
-        DateTime(_getSchoolStartYear()).add(Duration(days: (week - 1) * 7));
+    DateTime date = DateTime(1900).add(Duration(days: (week - 1) * 7));
     return DateTime(date.year, date.month, date.day + (1 - date.weekday));
-  }
-
-  int _getSchoolStartYear() {
-    int month = DateTime.now().month;
-    int year = DateTime.now().year;
-    return month >= DateTime.september && month <= DateTime.december
-        ? year
-        : year - 1;
   }
 
   bool isSelected(DateTime date) {
@@ -45,11 +36,11 @@ class _NavBarState extends State<NavBar> {
   void initState() {
     super.initState();
     var diff = selectedDateBloc.subject.value
-            .difference(_getFirstMondayOfWeek(
-                week: DateTime(_getSchoolStartYear(), DateTime.september).week))
-            .inDays /
-        7;
-    _pageController = PageController(initialPage: diff.floor());
+                .difference(_getFirstMondayOfWeek(week: DateTime(1900).week))
+                .inDays /
+            7 +
+        0.1;
+    _pageController = PageController(initialPage: diff.ceil());
     _studentName = User.studentName;
   }
 
@@ -124,18 +115,18 @@ class _NavBarState extends State<NavBar> {
   Widget get _buildDateList => PageView.builder(
         physics: BouncingScrollPhysics(),
         controller: _pageController,
-        itemCount: 53,
         itemBuilder: (context, index) {
-          int week = DateTime(_getSchoolStartYear(), DateTime.september)
-              .add(Duration(days: 7 * index))
-              .week;
+          DateTime date = DateTime(1900).add(Duration(days: 7 * index));
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: StreamBuilder<DateTime>(
               stream: selectedDateBloc.subject.stream,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  return Week(week: week, selectedDate: snapshot.data);
+                  return Week(
+                      week: date.week,
+                      year: date.year,
+                      selectedDate: snapshot.data);
                 }
                 return SizedBox.shrink();
               },

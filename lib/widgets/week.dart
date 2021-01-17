@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:iut_lr_app/bloc/get_selected_date_bloc.dart';
 
-import '../apis/dateTime_apis.dart';
 import 'card/date_card.dart';
 
 class Week extends StatefulWidget {
   final int week;
+  final int year;
   final DateTime selectedDate;
 
   const Week({
     Key key,
     @required this.week,
+    @required this.year,
     @required this.selectedDate,
   }) : super(key: key);
 
@@ -23,30 +24,22 @@ class _WeekState extends State<Week> {
   GlobalKey _key = GlobalKey();
   double _width;
   List<DateTime> _dateList;
+  DateTime _monday;
+  bool _isVisible = false;
 
   double _getWidth() {
     final RenderBox rb = _key.currentContext.findRenderObject();
     return rb.size.width;
   }
 
-  int _getSchoolStartYear() {
-    int month = DateTime.now().month;
-    int year = DateTime.now().year;
-    return month >= DateTime.september && month <= DateTime.december
-        ? year
-        : year - 1;
-  }
-
-  DateTime _getFirstMondayOfWeek({int week}) {
+  DateTime _getFirstMondayOfWeek() {
     DateTime date =
-        DateTime(_getSchoolStartYear()).add(Duration(days: (week - 1) * 7));
+        DateTime(widget.year).add(Duration(days: (widget.week - 1) * 7));
     return DateTime(date.year, date.month, date.day + (1 - date.weekday));
   }
 
   List<DateTime> _getDatesOfWeek() {
-    final firstMondayOfWeek = _getFirstMondayOfWeek(week: widget.week);
-    return List.generate(
-        7, (index) => firstMondayOfWeek.add(Duration(days: index)));
+    return List.generate(7, (index) => _monday.add(Duration(days: index)));
   }
 
   bool _isSelected(DateTime date) =>
@@ -56,14 +49,23 @@ class _WeekState extends State<Week> {
   int get _getSelectedDateIndex =>
       _dateList.indexWhere((date) => _isSelected(date));
 
-  bool get _isIndicatorVisible =>
-      widget.week == widget.selectedDate.week && _width != null;
+  bool get _isIndicatorVisible {
+    DateTime sunday =
+        _monday.add(Duration(days: 7)).subtract(Duration(seconds: 1));
+    return widget.selectedDate.isAtSameMomentAs(_monday) ||
+        widget.selectedDate.isAfter(_monday) &&
+            widget.selectedDate.isBefore(sunday) &&
+            _width != null;
+  }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => setState(() => _width = _getWidth()));
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {
+          _width = _getWidth();
+          _isVisible = _isIndicatorVisible;
+        }));
+    _monday = _getFirstMondayOfWeek();
     _dateList = _getDatesOfWeek();
   }
 
@@ -72,7 +74,7 @@ class _WeekState extends State<Week> {
     return Stack(
       key: _key,
       children: [
-        if (_isIndicatorVisible) _buildIndicator,
+        if (_isVisible) _buildIndicator,
         _buildWeekRow,
       ],
     );
@@ -101,6 +103,7 @@ class _WeekState extends State<Week> {
               selected: _isSelected(date),
               onTap: () {
                 if (!widget.selectedDate.isAtSameMomentAs(date)) {
+                  _isVisible = true;
                   selectedDateBloc.setSelectedDate(date);
                 }
               },
