@@ -1,17 +1,26 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class User {
-  static final _storage = FlutterSecureStorage();
   static final _studentIdKey = 'student_id';
   static final _studentNameKey = 'student_name';
 
-  static Future<String> get studentId => _storage.read(key: _studentIdKey);
+  static Future<String> get studentId async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_studentIdKey);
+  }
 
-  static void setStudentId(String id) =>
-      _storage.write(key: _studentIdKey, value: id);
+  static Future<void> setStudentId(String id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setString(_studentIdKey, id);
+  }
 
-  static Future<String> get studentName => _storage.read(key: _studentNameKey);
+  static Future<String> get studentName async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_studentNameKey);
+  }
 
-  static void setStudentName(String name) =>
-      _storage.write(key: _studentNameKey, value: name);
+  static Future<void> setStudentName(String name) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setString(_studentNameKey, name);
+  }
 }
