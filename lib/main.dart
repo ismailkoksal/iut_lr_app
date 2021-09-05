@@ -1,15 +1,24 @@
 import 'dart:io';
 
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:iut_lr_app/constants.dart';
 import 'package:iut_lr_app/pages/schedule_page.dart';
+import 'package:iut_lr_app/repository/course_repository.dart';
+import 'package:iut_lr_app/repository/repository.dart';
 import 'package:iut_lr_app/routes.dart';
 import 'package:iut_lr_app/services/gpu.dart';
-import 'package:iut_lr_app/settings_store.dart';
-import 'package:iut_lr_app/user.dart';
+import 'package:iut_lr_app/stores/course_store.dart';
+import 'package:iut_lr_app/stores/date_store.dart';
+import 'package:iut_lr_app/themes/dark.dart';
+import 'package:provider/provider.dart';
+
+import 'interceptor.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -31,34 +40,41 @@ void main() async {
       systemNavigationBarColor: kDarkAppBarColor,
     ),
   );
-  String username = await User.studentId;
-  username != null
-      ? GpuService.login(studentId: username).then((_) =>
-          runApp(SettingsStore(child: MyApp(initialRoute: Routes.schedule))))
-      : runApp(SettingsStore(child: MyApp(initialRoute: Routes.login)));
+
+  final dio = Dio(BaseOptions(baseUrl: 'https://www.gpu-lr.fr'))
+    ..interceptors.add(CookieManager(CookieJar()))
+    ..interceptors.add(GpuApiInterceptor());
+
+  final courseRepository = CourseRepository(dio);
+
+  final repository = Repository(courseRepository);
+
+  final courseStore = CourseStore(repository);
+  final dateStore = DateStore();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<Repository>(create: (_) => repository),
+        Provider<CourseStore>(create: (_) => courseStore),
+        Provider<DateStore>(create: (_) => dateStore),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  final String initialRoute;
-
-  const MyApp({
-    Key key,
-    @required this.initialRoute,
-  }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: SettingsStore.of(context).theme,
-      builder: (context, theme, child) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: theme,
-        initialRoute: initialRoute,
-        routes: {
-          Routes.login: (context) => LoginScreen(),
-          Routes.schedule: (context) => ScheduleScreen(),
-        },
-      ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: darkTheme,
+      routes: {
+        Routes.login: (context) => LoginScreen(),
+        Routes.schedule: (context) => ScheduleScreen(),
+      },
+      initialRoute: Routes.schedule,
     );
   }
 }

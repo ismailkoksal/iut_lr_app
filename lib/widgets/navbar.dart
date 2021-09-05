@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:iut_lr_app/bloc/get_selected_date_bloc.dart';
+import 'package:iut_lr_app/stores/date_store.dart';
 import 'package:iut_lr_app/themes/theme.dart';
 import 'package:iut_lr_app/user.dart';
-import 'package:iut_lr_app/widgets/week.dart';
+import 'package:iut_lr_app/widgets/list/week_page_view.dart';
+import 'package:provider/provider.dart';
 
-import '../apis/dateTime_apis.dart';
 import '../apis/string_apis.dart';
 import '../settings_store.dart';
 
@@ -19,39 +21,23 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> {
-  PageController _pageController;
   Future<String> _studentName;
 
-  DateTime _getFirstMondayOfWeek({int week}) {
-    DateTime date = DateTime(1900).add(Duration(days: (week - 1) * 7));
-    return DateTime(date.year, date.month, date.day + (1 - date.weekday));
-  }
-
   bool isSelected(DateTime date) {
+    final selectedDate = context.watch<DateStore>().selectedDate.value;
     return DateFormat.yMd().format(date) ==
-        DateFormat.yMd().format(selectedDateBloc.subject.value);
+        DateFormat.yMd().format(selectedDate);
   }
 
   @override
   void initState() {
     super.initState();
-    var diff = selectedDateBloc.subject.value
-                .difference(_getFirstMondayOfWeek(week: DateTime(1900).week))
-                .inDays /
-            7 +
-        0.1;
-    _pageController = PageController(initialPage: diff.ceil());
     _studentName = User.studentName;
   }
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final dateStore = context.watch<DateStore>();
     return ClipRRect(
       borderRadius: BorderRadius.vertical(bottom: Radius.circular(40.0)),
       child: Container(
@@ -90,10 +76,49 @@ class _NavBarState extends State<NavBar> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 20.0),
-                    Container(
-                      height: 70.0,
-                      child: _buildDateList,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Observer(
+                          builder: (context) {
+                            final month = DateFormat.MMM()
+                                .format(dateStore.selectedDate.value)
+                                .toTitleCase();
+                            return Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 30.0),
+                              foregroundDecoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                    colors: [
+                                      Theme.of(context).appBarTheme.color,
+                                      Theme.of(context)
+                                          .appBarTheme
+                                          .color
+                                          .withOpacity(0.8),
+                                    ],
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    stops: [0.2, 0.9]),
+                              ),
+                              child: Text(
+                                month,
+                                style: GoogleFonts.poppins(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .headline6
+                                      .color,
+                                  fontSize: 40.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        Container(
+                          height: 70.0,
+                          child: WeekPageView(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -111,27 +136,4 @@ class _NavBarState extends State<NavBar> {
       style: Theme.of(context).textTheme.headline6,
     );
   }
-
-  Widget get _buildDateList => PageView.builder(
-        physics: BouncingScrollPhysics(),
-        controller: _pageController,
-        itemBuilder: (context, index) {
-          DateTime date = DateTime(1900).add(Duration(days: 7 * index));
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: StreamBuilder<DateTime>(
-              stream: selectedDateBloc.subject.stream,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Week(
-                      week: date.week,
-                      year: date.year,
-                      selectedDate: snapshot.data);
-                }
-                return SizedBox.shrink();
-              },
-            ),
-          );
-        },
-      );
 }

@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
 import 'package:iut_lr_app/apis/dateTime_apis.dart';
-import 'package:iut_lr_app/bloc/get_courses_bloc.dart';
-import 'package:iut_lr_app/bloc/get_selected_date_bloc.dart';
 import 'package:iut_lr_app/models/course.dart';
-import 'package:iut_lr_app/models/course_response.dart';
+import 'package:iut_lr_app/stores/course_store.dart';
+import 'package:iut_lr_app/stores/date_store.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../card/course_card.dart';
@@ -26,29 +27,25 @@ class _CourseListState extends State<CourseList> {
   DateTime _currentDateTime = DateTime.now();
   Timer _timer;
 
-  Stream<List<Course>> _getSelectedDateCourses() {
-    return Rx.combineLatest2(
-      coursesBloc.subject.stream,
-      selectedDateBloc.subject.stream,
-      (CourseResponse courseResponse, DateTime selectedDate) {
-        if (courseResponse != null) {
-          return courseResponse.courses
-              .where((course) =>
-                  DateFormat.yMd().format(course.dtstart.toLocal()) ==
-                  DateFormat.yMd().format(selectedDate))
-              .toList();
-        }
-        return null;
-      },
-    );
+  List<Course> _getSelectedDateCourses() {
+    final selectedDate = context.read<DateStore>().selectedDate.value;
+    return context
+        .read<CourseStore>()
+        .courses
+        .where((course) =>
+            DateFormat.yMd().format(course.dtstart.toLocal()) ==
+            DateFormat.yMd().format(selectedDate))
+        .toList();
   }
 
-  void _loadCourses() {
-    _getSelectedDateCourses().switchMap((courses) {
-      _removeCourses();
-      return Stream.fromIterable((courses ?? []).asMap().entries)
-          .interval(Duration(milliseconds: 150));
-    }).listen((event) {
+  _loadCourses() async {
+    _removeCourses();
+    final courses = _getSelectedDateCourses();
+    print(courses);
+
+    Stream.fromIterable((courses).asMap().entries)
+        .interval(Duration(milliseconds: 150))
+        .listen((event) {
       _courses.insert(event.key, event.value);
       _listKey.currentState.insertItem(event.key);
     });
@@ -77,11 +74,10 @@ class _CourseListState extends State<CourseList> {
   void initState() {
     super.initState();
     _loadCourses();
-    _updateTimer();
-    selectedDateBloc.subject.stream
-        .map((date) => date.week)
-        .distinct()
-        .listen((week) => coursesBloc.getCourses(week));
+    context.read<DateStore>().selectedDate.observe((listener) {
+      context.read<CourseStore>().loadCourses(listener.newValue.week);
+    }, fireImmediately: true);
+    // _updateTimer();
   }
 
   @override
@@ -92,24 +88,21 @@ class _CourseListState extends State<CourseList> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Course>>(
-      stream: _getSelectedDateCourses(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return snapshot.data.isNotEmpty
-              ? AnimatedList(
-                  key: _listKey,
-                  initialItemCount: _courses.length,
-                  physics: BouncingScrollPhysics(),
-                  itemBuilder: _buildItem,
-                )
-              : Center(
-                  child: Text(
-                  'Aucun cours',
-                  style: Theme.of(context).textTheme.headline6,
-                ));
-        }
-        return Center(child: CircularProgressIndicator());
+    final courseStore = context.watch<CourseStore>();
+    return Observer(
+      builder: (context) {
+        return courseStore.courses.isNotEmpty
+            ? AnimatedList(
+                key: _listKey,
+                initialItemCount: _courses.length,
+                physics: BouncingScrollPhysics(),
+                itemBuilder: _buildItem,
+              )
+            : Center(
+                child: Text(
+                'Aucun cours',
+                style: Theme.of(context).textTheme.headline6,
+              ));
       },
     );
   }

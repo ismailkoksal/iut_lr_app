@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:iut_lr_app/bloc/get_selected_date_bloc.dart';
+import 'package:iut_lr_app/stores/date_store.dart';
+import 'package:provider/provider.dart';
 
 import 'card/date_card.dart';
 
@@ -104,7 +105,7 @@ class _WeekState extends State<Week> {
               onTap: () {
                 if (!widget.selectedDate.isAtSameMomentAs(date)) {
                   _isVisible = true;
-                  selectedDateBloc.setSelectedDate(date);
+                  context.read<DateStore>().setDate(date);
                 }
               },
             ),
