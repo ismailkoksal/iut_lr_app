@@ -31,14 +31,20 @@ class _CourseListState extends State<CourseList> {
       coursesBloc.subject.stream,
       selectedDateBloc.subject.stream,
       (CourseResponse courseResponse, DateTime selectedDate) {
-        if (courseResponse != null) {
-          return courseResponse.courses
-              .where((course) =>
-                  DateFormat.yMd().format(course.dtstart.toLocal()) ==
-                  DateFormat.yMd().format(selectedDate))
-              .toList();
+        // null tant que la semaine chargée ne correspond pas à la date
+        // sélectionnée : chargement en cours, on garde le spinner.
+        if (courseResponse == null ||
+            courseResponse.week != selectedDate.week) {
+          return null;
         }
-        return null;
+        // On ne compare pas la date complète : gpu2vcs.php ne prend pas
+        // d'année et peut renvoyer la bonne semaine d'une autre année
+        // scolaire. Comme la réponse ne contient que la semaine demandée,
+        // le jour de la semaine identifie le jour sans ambiguïté.
+        return courseResponse.courses
+            .where((course) =>
+                course.dtstart.toLocal().weekday == selectedDate.weekday)
+            .toList();
       },
     );
   }
@@ -51,13 +57,15 @@ class _CourseListState extends State<CourseList> {
     }).listen((event) {
       _courses.insert(event.key, event.value);
       _listKey.currentState.insertItem(event.key);
-    });
+    }, onError: (_) => _removeCourses());
   }
 
   void _removeCourses() {
     for (var i = _courses.length - 1; i >= 0; i--) {
       _courses.removeAt(i);
-      _listKey.currentState.removeItem(i, (context, animation) => null);
+      // currentState est null quand l'AnimatedList n'est pas montée (spinner
+      // ou message d'erreur affiché à sa place).
+      _listKey.currentState?.removeItem(i, (context, animation) => null);
     }
   }
 
@@ -95,6 +103,14 @@ class _CourseListState extends State<CourseList> {
     return StreamBuilder<List<Course>>(
       stream: _getSelectedDateCourses(),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Erreur de chargement',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+          );
+        }
         if (snapshot.hasData) {
           return snapshot.data.isNotEmpty
               ? AnimatedList(

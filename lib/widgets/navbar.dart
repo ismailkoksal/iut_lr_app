@@ -22,9 +22,12 @@ class _NavBarState extends State<NavBar> {
   PageController _pageController;
   Future<String> _studentName;
 
-  DateTime _getFirstMondayOfWeek({int week}) {
-    DateTime date = DateTime(1900).add(Duration(days: (week - 1) * 7));
-    return DateTime(date.year, date.month, date.day + (1 - date.weekday));
+  /// Index de la page correspondant à la semaine de [date]. Les pages sont
+  /// indexées depuis le lundi 1er janvier 1900 (cf. [_buildDateList]).
+  int _getPageOfDate(DateTime date) {
+    final DateTime monday =
+        DateTime(date.year, date.month, date.day - (date.weekday - 1));
+    return (monday.difference(DateTime(1900)).inDays / 7).round();
   }
 
   bool isSelected(DateTime date) {
@@ -35,12 +38,8 @@ class _NavBarState extends State<NavBar> {
   @override
   void initState() {
     super.initState();
-    var diff = selectedDateBloc.subject.value
-                .difference(_getFirstMondayOfWeek(week: DateTime(1900).week))
-                .inDays /
-            7 +
-        0.1;
-    _pageController = PageController(initialPage: diff.ceil());
+    _pageController = PageController(
+        initialPage: _getPageOfDate(selectedDateBloc.subject.value));
     _studentName = User.studentName;
   }
 
@@ -116,7 +115,7 @@ class _NavBarState extends State<NavBar> {
         physics: BouncingScrollPhysics(),
         controller: _pageController,
         itemBuilder: (context, index) {
-          DateTime date = DateTime(1900).add(Duration(days: 7 * index));
+          DateTime date = DateTime(1900, 1, 1 + 7 * index);
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: StreamBuilder<DateTime>(

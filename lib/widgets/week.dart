@@ -32,14 +32,21 @@ class _WeekState extends State<Week> {
     return rb.size.width;
   }
 
+  /// Inverse de [DateTimeExtension.week], qui est la formule ISO 8601 : la
+  /// semaine 1 est celle qui contient le 4 janvier, pas celle du 1er janvier.
+  /// Partir du 1er janvier décalait l'affichage d'une semaine sur toutes les
+  /// années dont le 1er janvier tombe un vendredi, samedi ou dimanche.
   DateTime _getFirstMondayOfWeek() {
-    DateTime date =
-        DateTime(widget.year).add(Duration(days: (widget.week - 1) * 7));
-    return DateTime(date.year, date.month, date.day + (1 - date.weekday));
+    final DateTime jan4 = DateTime(widget.year, 1, 4);
+    return DateTime(
+        widget.year, 1, 4 - (jan4.weekday - 1) + (widget.week - 1) * 7);
   }
 
   List<DateTime> _getDatesOfWeek() {
-    return List.generate(7, (index) => _monday.add(Duration(days: index)));
+    // Passer par le constructeur plutôt que add(Duration(days:)) : un
+    // changement d'heure dans la semaine décalerait les dates d'une heure.
+    return List.generate(
+        7, (index) => DateTime(_monday.year, _monday.month, _monday.day + index));
   }
 
   bool _isSelected(DateTime date) =>
