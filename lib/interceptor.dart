@@ -4,11 +4,13 @@ import 'package:iut_lr_app/user.dart';
 
 class GpuApiInterceptor extends InterceptorsWrapper {
   @override
-  Future onRequest(RequestOptions options) {
+  Future onRequest(RequestOptions options) async {
     print("REQUEST[${options?.method}] => PATH: ${options?.path}");
-    GpuService.isLoggedIn().then((isLoggedIn) async => !isLoggedIn
-        ? await GpuService.login(studentId: await User.studentId)
-        : null);
+    // Le login doit être terminé avant de laisser partir la requête, sinon
+    // celle-ci est émise sans session et reçoit la page d'erreur HTML.
+    if (!await GpuService.isLoggedIn()) {
+      await GpuService.login(studentId: await User.studentId);
+    }
     return super.onRequest(options);
   }
 

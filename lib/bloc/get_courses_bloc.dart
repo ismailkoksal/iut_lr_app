@@ -9,9 +9,13 @@ class CoursesListBloc {
 
   getCourses(int week) async {
     _subject.sink.add(null);
-    CourseResponse response = await _repository.getCourses(week)
-      ..courses.sort((a, b) => a.dtstart.compareTo(b.dtend));
-    _subject.sink.add(response);
+    try {
+      CourseResponse response = await _repository.getCourses(week);
+      response.courses.sort((a, b) => a.dtstart.compareTo(b.dtstart));
+      _subject.sink.add(response);
+    } catch (error, stacktrace) {
+      _subject.sink.addError(error, stacktrace);
+    }
   }
 
   dispose() {

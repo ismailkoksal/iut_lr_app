@@ -9,8 +9,11 @@ import 'package:html/parser.dart' show parse;
 import '../user.dart';
 
 class GpuService {
-  static CookieJar _cookieJar = CookieJar();
-  static Dio _dio = new Dio()..interceptors.add(CookieManager(_cookieJar));
+  /// Session partagée avec [CourseRepository] : gpu2vcs.php n'accepte la
+  /// requête que si le cookie posé par login() est renvoyé. Deux CookieJar
+  /// distincts renvoyaient une page « Erreur 404 / droits insuffisants ».
+  static final CookieJar cookieJar = CookieJar();
+  static Dio _dio = new Dio()..interceptors.add(CookieManager(cookieJar));
   static String _baseUrl = 'https://www.gpu-lr.fr';
   static final _storage = FlutterSecureStorage();
 
